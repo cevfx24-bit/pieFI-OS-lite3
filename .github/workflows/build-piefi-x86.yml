@@ -1,84 +1,10 @@
-
-name: Build PieFi x86_64
-
-on:
-  workflow_dispatch:
-    inputs:
-      openwrt_version:
-        description: OpenWrt release
-        required: true
-        default: '24.10.2'
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            coreutils \
-            build-essential \
-            zstd \
-            wget \
-            tar \
-            python3 \
-            perl \
-            gawk \
-            gettext \
-            unzip \
-            file
-
-      - name: Download ImageBuilder
-        run: |
-          VERSION="${{ inputs.openwrt_version }}"
-          URL="https://downloads.openwrt.org/releases/${VERSION}/targets/x86/64"
-
-          wget -q "${URL}/openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
-
-          tar --use-compress-program=unzstd \
-            -xf "openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
-
-          IB="$(find . -maxdepth 1 -type d -name 'openwrt-imagebuilder-*' | head -1)"
-
-          if [ -z "$IB" ]; then
-            echo "ImageBuilder directory not found"
-            exit 1
-          fi
-
-          mkdir -p "$IB/tmp"
-
-          echo "ImageBuilder=$IB" >> "$GITHUB_ENV"
-
-      - name: Stage PieFi files
-        run: |
-          mkdir -p "$ImageBuilder/files/etc"
-
-          cp config/banner "$ImageBuilder/files/etc/banner"
-
-          mkdir -p "$ImageBuilder/files/etc/piefi"
-
-          echo "PieFi OS" > "$ImageBuilder/files/etc/piefi/brand"
-
       - name: Build PieFi x86 image
         run: |
           cd "$ImageBuilder"
-
           mkdir -p tmp
 
           make image \
             PROFILE="generic" \
             PACKAGES="luci luci-ssl sqlite3 curl wget ca-bundle ip-full tcpdump-mini ethtool" \
-            FILES="files"
-
-      - name: Upload PieFi OS image
-        uses: actions/upload-artifact@v4
-        with:
-          name: PieFi-x86_64-image
-          path: |
-            openwrt-imagebuilder-*/bin/targets/x86/64/*
-          if-no-files-found: error
-          retention-days: 7
+            FILES="files" \
+            FORCE=1
