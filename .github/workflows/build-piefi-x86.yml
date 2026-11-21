@@ -1,0 +1,36 @@
+name: Build PieFi x86_64
+on:
+  workflow_dispatch:
+    inputs:
+      openwrt_version:
+        description: OpenWrt release (ImageBuilder available)
+        required: true
+        default: '24.10.2'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download ImageBuilder
+        run: |
+          VERSION="${{ inputs.openwrt_version }}"
+          URL="https://downloads.openwrt.org/releases/${VERSION}/targets/x86/64"
+          wget -q "${URL}/openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
+          sudo apt-get update
+          sudo apt-get install -y zstd
+          tar --use-compress-program=unzstd -xf openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst
+      - name: Stage PieFi files
+        run: |
+          IB="$(find . -maxdepth 1 -type d -name 'openwrt-imagebuilder-*' | head -1)"
+          mkdir -p "$IB/files/etc"
+          cp config/banner "$IB/files/etc/banner"
+          echo "ImageBuilder=$IB" >> "$GITHUB_ENV"
+      - name: Build x86 image
+        run: |
+          cd "$ImageBuilder"
+          make image PROFILE="generic" PACKAGES="luci luci-ssl sqlite3 curl wget ca-bundle ip-full tcpdump-mini ethtool" FILES="files"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PieFi-x86_64-image
+          path: openwrt-imagebuilder-*/bin/targets/x86/64/*
