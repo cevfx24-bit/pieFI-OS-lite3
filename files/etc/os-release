@@ -1,0 +1,9 @@
+NAME="PieFi OS Lite"
+PRETTY_NAME="PieFi OS Lite V3"
+VERSION="V3"
+VERSION_ID="3"
+ID=openwrt
+ID_LIKE="openwrt"
+HOME_URL="http://10.0.0.1/"
+BUG_REPORT_URL=""
+PIEFI_BASE_VERSION="25.12.6"

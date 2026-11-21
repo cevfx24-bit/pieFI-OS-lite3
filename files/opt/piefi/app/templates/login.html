@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071522">
+  <title>PieFi OS Lite · Administrator Login</title>
+  <link rel="icon" type="image/svg+xml" href="/static/piefi-favicon.svg">
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body class="loginbody">
+  <main class="loginbox">
+    <div class="login-brand">
+      <span class="brandmark" aria-hidden="true">⌁</span>
+      <div><b>PieFi OS Lite</b><small>PISOWIFI NETWORK SYSTEM</small></div>
+    </div>
+    <div class="login-intro">
+      <span class="eyebrow">ADMINISTRATOR ACCESS</span>
+      <h1>Welcome back</h1>
+      <p>Sign in to manage your PieFi network.</p>
+    </div>
+    {% with messages=get_flashed_messages(with_categories=true) %}
+      {% for category,message in messages %}<div class="flash {{ category }}" role="alert">{{ message }}</div>{% endfor %}
+    {% endwith %}
+    <form method="post" action="{{ url_for('login') }}">
+      <label>Username<input name="username" autocomplete="username" required value="admin"></label>
+      <label>Password<input type="password" name="password" autocomplete="current-password" required autofocus></label>
+      <button class="primary full" type="submit">Sign in to PieFi <span aria-hidden="true">→</span></button>
+    </form>
+    <p class="login-foot">Protected administrator console · PieFi OS Lite</p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,73 @@
+#!/bin/sh
+# Fixed hardware mapping: onboard eth0=WAN; USB RTL8153 eth1=LAN.
+# Administrative UP is automatic; physical carrier still requires a live cable/link.
+
+[ "$(id -u)" = "0" ] || exit 1
+WAN_IF="eth0"
+LAN_IF="eth1"
+
+if [ ! -e "/sys/class/net/$WAN_IF" ]; then
+    logger -t piefi "WAN eth0 not detected; refusing to configure LAN/WAN"
+    exit 1
+fi
+ip link set dev "$WAN_IF" up 2>/dev/null || true
+
+uci -q delete network.wan
+uci set network.wan='interface'
+uci set network.wan.proto='dhcp'
+uci set network.wan.device="$WAN_IF"
+
+if [ -e "/sys/class/net/$LAN_IF" ]; then
+    ip link set dev "$LAN_IF" up 2>/dev/null || true
+    uci -q delete network.lan
+    uci set network.lan='interface'
+    uci set network.lan.proto='static'
+    uci set network.lan.device='br-lan'
+    uci set network.lan.ipaddr='10.0.0.1'
+    uci set network.lan.netmask='255.255.255.0'
+
+    uci -q delete network.br_lan
+    uci set network.br_lan='device'
+    uci set network.br_lan.name='br-lan'
+    uci set network.br_lan.type='bridge'
+    uci add_list network.br_lan.ports="$LAN_IF"
+
+    uci set dhcp.lan.interface='lan'
+    uci set dhcp.lan.start='100'
+    uci set dhcp.lan.limit='150'
+    uci set dhcp.lan.leasetime='12h'
+    uci set dhcp.lan.ignore='0'
+    logger -t piefi "WAN=eth0; LAN=eth1; gateway=10.0.0.1/24"
+    HAVE_LAN=1
+else
+    uci -q delete network.lan
+    uci -q delete network.br_lan
+    logger -t piefi "WAN=eth0; USB LAN eth1 absent; LAN remains disabled until hotplug add"
+    HAVE_LAN=0
+fi
+
+uci commit network
+uci commit dhcp
+/etc/init.d/network reload
+
+if [ "$HAVE_LAN" = "1" ]; then
+    # Wait for netifd to create br-lan and assign the LAN gateway before
+    # restarting DHCP/firewall/openNDS. Avoid starting the portal too early.
+    n=0
+    while [ "$n" -lt 15 ]; do
+        if ip -4 addr show dev br-lan 2>/dev/null | grep -q '10\.0\.0\.1/24'; then
+            break
+        fi
+        sleep 1
+        n=$((n + 1))
+    done
+    if ip -4 addr show dev br-lan 2>/dev/null | grep -q '10\.0\.0\.1/24'; then
+        /etc/init.d/dnsmasq restart 2>/dev/null || true
+        /etc/init.d/firewall restart 2>/dev/null || true
+        /etc/init.d/opennds restart 2>/dev/null || /etc/init.d/opennds start 2>/dev/null || true
+        logger -t piefi "LAN ready on br-lan 10.0.0.1; openNDS restart requested"
+    else
+        logger -t piefi "br-lan did not receive 10.0.0.1/24; openNDS not restarted"
+    fi
+fi
+exit 0
