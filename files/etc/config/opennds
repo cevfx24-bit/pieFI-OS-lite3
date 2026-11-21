@@ -1,0 +1,10 @@
+config opennds
+	option enabled '1'
+	option gatewayinterface 'br-lan'
+	option gatewayname 'PieFi OS Lite'
+	option maxclients '250'
+	option sessiontimeout '3600'
+	option preauthidletimeout '300'
+	option authidletimeout '1200'
+	option uploadrate '0'
+	option downloadrate '0'

@@ -1,29 +1,35 @@
-# PieFi OS Lite — GitHub Run Package (Prototype)
+# PieFi OS Lite Integrated Image Builder (x86-64)
 
-This package is an early **portal/credit simulation**, not a finished PisoWiFi firmware.
+This kit builds a **custom OpenWrt x86-64 image** with PieFi branding, openNDS, LuCI, SQLite and common administration/network packages. It also installs a small local PieFi landing/service placeholder.
 
-## Run in GitHub Codespaces
+> Build output is a firmware image, not yet a production-tested PisoWiFi appliance. The portal-credit-to-openNDS authorization path and coin-reader hardware driver still require integration and hardware testing.
+
+## Build in GitHub Codespaces (Ubuntu)
+
 1. Upload this folder to a GitHub repository.
-2. Open the repository and select **Code → Codespaces → Create codespace**.
-3. In the Codespaces terminal, run:
-   ```bash
-   python3 app/piefi_portal.py --bind 0.0.0.0 --port 8090
-   ```
-4. Open the forwarded port 8090 when Codespaces offers it.
+2. Open the repository in Codespaces.
+3. In Terminal run:
 
-## Run locally (Linux/Windows with Python 3)
 ```bash
-python3 app/piefi_portal.py --bind 127.0.0.1 --port 8090
+chmod +x scripts/build.sh
+./scripts/build.sh
 ```
-Open http://127.0.0.1:8090
 
-## What it does
-- Responsive PieFi customer/admin prototype UI
-- SQLite ledger with simulated credit balances
-- HTTP endpoints: `/health`, `/clients`, `/credit`
+The script downloads the OpenWrt ImageBuilder for the release configured in `scripts/build.sh` (default `24.10.5`) and builds x86-64 combined EFI/BIOS image output where supported by the ImageBuilder target.
 
-## Important
-- Simulation only: does **not** authorize clients to use internet.
-- Not yet integrated with openNDS, OpenWrt, firewall rules, or coin acceptor hardware.
-- Admin view currently lacks authentication; keep it local/lab-only.
-- This is not an OpenWrt image builder yet.
+Build output is in `output/`. The `.img.gz` is the image to write to USB/SSD using a disk image writer. **Writing it erases the target drive.**
+
+## Change release
+
+Edit the `RELEASE` setting near the top of `scripts/build.sh` to a release available in the official OpenWrt downloads directory. This build kit deliberately pins a release instead of silently changing versions.
+
+## Included package selection
+
+openNDS, LuCI, firewall4/nftables, dnsmasq, SQLite, Python 3, USB/serial tools, basic diagnostics, and common x86 drivers. Package availability varies by release.
+
+## Current limits
+
+- No tested coin acceptor hardware connection yet.
+- The installed PieFi web service is a foundation/placeholder, not full account-credit captive authorization.
+- Configure WAN/LAN interfaces for your specific hardware before deployment.
+- Do not expose the admin interface to the public internet.
