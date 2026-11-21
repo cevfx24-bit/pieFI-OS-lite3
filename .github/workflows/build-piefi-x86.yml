@@ -1,4 +1,3 @@
-
 name: Build PieFi OS Lite x86_64
 
 on:
@@ -73,7 +72,7 @@ jobs:
 
           make image \
             PROFILE="generic" \
-            PACKAGES="luci luci-ssl sqlite3 curl wget ca-bundle ip-full tcpdump-mini ethtool" \
+            PACKAGES="luci luci-ssl curl wget ca-bundle ip-full tcpdump-mini ethtool" \
             FILES="files" \
             FORCE=1
 
