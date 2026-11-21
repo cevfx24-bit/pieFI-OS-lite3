@@ -14,7 +14,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,61 +21,32 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            coreutils \
-            build-essential \
-            zstd \
-            wget \
-            tar \
-            python3 \
-            perl \
-            gawk \
-            gettext \
-            unzip \
-            file \
-            xz-utils
-
-          echo "Checking GNU install..."
-          command -v install
-          install --version
+          sudo apt-get install -y coreutils build-essential zstd wget tar python3 perl gawk gettext unzip file xz-utils
 
       - name: Download OpenWrt ImageBuilder
         run: |
           VERSION="${{ inputs.openwrt_version }}"
           URL="https://downloads.openwrt.org/releases/${VERSION}/targets/x86/64"
-
           wget -q "${URL}/openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
-
-          tar --use-compress-program=unzstd \
-            -xf "openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
-
+          tar --use-compress-program=unzstd -xf "openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
           IB="$(find . -maxdepth 1 -type d -name 'openwrt-imagebuilder-*' | head -1)"
-
           echo "ImageBuilder=$IB" >> "$GITHUB_ENV"
 
-      - name: Stage PieFi files
+      - name: Stage PieFi overlay files
         run: |
-          mkdir -p "$ImageBuilder/files/etc"
-
-          if [ -f config/banner ]; then
-            cp config/banner "$ImageBuilder/files/etc/banner"
-          fi
-
-          echo "PieFi OS Lite" > "$ImageBuilder/files/etc/piefi-release"
+          mkdir -p "$ImageBuilder/files"
+          cp -a files/. "$ImageBuilder/files/"
 
       - name: Build PieFi OS Lite
         run: |
           cd "$ImageBuilder"
-
-          mkdir -p tmp
-
           make image \
             PROFILE="generic" \
-            PACKAGES="luci luci-ssl curl wget ca-bundle ip-full tcpdump-mini ethtool" \
+            PACKAGES="luci luci-ssl opennds curl wget ca-bundle ip-full tcpdump-mini ethtool kmod-usb-net kmod-usb-net-cdc-ether kmod-usb-net-cdc-ncm kmod-usb-net-rndis kmod-usb-net-asix kmod-usb-net-asix-ax88179 kmod-usb-net-rtl8150 kmod-usb-net-r8152 kmod-usb-net-smsc95xx" \
             FILES="files" \
             FORCE=1
 
-      - name: Upload PieFi firmware
+      - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
         with:
           name: PieFi-OS-Lite-x86_64
