@@ -1,0 +1,3 @@
+Upload the CONTENTS of this folder (not the enclosing folder) to your GitHub repository's main branch.
+Then GitHub: Actions tab -> PieFi x86-64 firmware build -> Run workflow.
+Build is not yet verified; the workflow must actually run to confirm ImageBuilder version availability and package resolution.

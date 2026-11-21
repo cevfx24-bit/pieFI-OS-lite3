@@ -1,0 +1,12 @@
+#!/bin/sh /etc/rc.common
+START=95
+USE_PROCD=1
+start_service(){
+ [ -s /etc/piefi/token ] || { umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > /etc/piefi/token; }
+ [ -s /etc/piefi/node-token ] || { umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > /etc/piefi/node-token; }
+ procd_open_instance
+ procd_set_param env PIEFI_ADMIN_TOKEN=$(cat /etc/piefi/token) PIEFI_NODE_TOKEN=$(cat /etc/piefi/node-token) PIEFI_DB=/etc/piefi/piefi.sqlite3 PIEFI_NDS_AUTH=1
+ procd_set_param command /usr/bin/python3 /usr/lib/piefi/api.py
+ procd_set_param respawn
+ procd_close_instance
+}
