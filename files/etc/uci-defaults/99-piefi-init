@@ -1,0 +1,9 @@
+#!/bin/sh
+# Initial PieFi settings. Run once on first boot.
+uci set system.@system[0].hostname='PieFi-OS-Lite' 2>/dev/null
+uci commit system
+/etc/init.d/uhttpd enable 2>/dev/null
+/etc/init.d/dnsmasq enable 2>/dev/null
+/etc/init.d/firewall enable 2>/dev/null
+/etc/init.d/opennds enable 2>/dev/null
+exit 0

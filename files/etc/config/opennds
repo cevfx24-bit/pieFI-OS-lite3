@@ -1,0 +1,12 @@
+config opennds
+ option enabled '1'
+ option gatewayinterface 'br-lan'
+ option gatewayname 'PieFi OS Lite'
+ option gatewayaddress '10.0.0.1'
+ option maxclients '250'
+ option sessiontimeout '3600'
+ option checkinterval '60'
+ option preauthidletimeout '120'
+ option fasport '80'
+ option faspath '/admin'
+ option faskey 'PieFi-Change-This-Key'
