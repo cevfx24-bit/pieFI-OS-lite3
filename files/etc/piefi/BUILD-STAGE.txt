@@ -1,1 +1,0 @@
-PieFi OS Lite Reloaded Stage 7 source scaffold. Firmware build and hardware tests pending.

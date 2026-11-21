@@ -1,1 +1,0 @@
-config opennds 'main'\n option enabled '1'\n option gatewayinterface 'br-lan'\n option fasport '2080'\n

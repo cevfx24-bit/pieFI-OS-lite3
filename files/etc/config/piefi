@@ -1,4 +1,0 @@
-config piefi 'main'
- option enabled '1'
- option token ''
- option nds_auth '1'
