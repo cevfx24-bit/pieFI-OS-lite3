@@ -30,19 +30,25 @@ jobs:
           wget -q "${URL}/openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
           tar --use-compress-program=unzstd -xf "openwrt-imagebuilder-${VERSION}-x86-64.Linux-x86_64.tar.zst"
           IB="$(find . -maxdepth 1 -type d -name 'openwrt-imagebuilder-*' | head -1)"
+          test -n "$IB"
           echo "ImageBuilder=$IB" >> "$GITHUB_ENV"
 
       - name: Stage PieFi overlay files
         run: |
           mkdir -p "$ImageBuilder/files"
-          cp -a files/. "$ImageBuilder/files/"
+          if [ -d files ]; then
+            cp -a files/. "$ImageBuilder/files/"
+          else
+            echo "Repository overlay folder 'files' is missing."
+            exit 1
+          fi
 
       - name: Build PieFi OS Lite
         run: |
           cd "$ImageBuilder"
           make image \
             PROFILE="generic" \
-            PACKAGES="luci luci-ssl opennds curl wget ca-bundle ip-full tcpdump-mini ethtool kmod-usb-net kmod-usb-net-cdc-ether kmod-usb-net-cdc-ncm kmod-usb-net-rndis kmod-usb-net-asix kmod-usb-net-asix-ax88179 kmod-usb-net-rtl8150 kmod-usb-net-r8152 kmod-usb-net-smsc95xx" \
+            PACKAGES="luci luci-ssl opennds curl wget ca-bundle ip-full tcpdump-mini ethtool kmod-usb-net kmod-usb-net-cdc-ether kmod-usb-net-cdc-ncm kmod-usb-net-rndis kmod-usb-net-asix kmod-usb-net-asix-ax88179 kmod-usb-net-rtl8150 kmod-usb-net-smsc95xx" \
             FILES="files" \
             FORCE=1
 
